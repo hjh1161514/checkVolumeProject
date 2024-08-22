@@ -4,8 +4,8 @@ import re
 import csv
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QLineEdit, QListWidget, QTableWidget, QTableWidgetItem, \
-    QVBoxLayout, QHBoxLayout, QPushButton
-
+    QVBoxLayout, QHBoxLayout, QPushButton, QProgressDialog
+from PyQt5.QtCore import QCoreApplication, Qt
 
 class VolumeAnalysisApp(QtWidgets.QWidget):
     def __init__(self):
@@ -105,15 +105,25 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
             print(f"Error processing file {file_path}: {e}")
             return None
 
-    def process_folder(self, folder_path):
+    def process_folder(self, folder_path, progress_dialog):
         self.table_widget.setRowCount(0)  # Clear existing rows
         results = []
-        for filename in os.listdir(folder_path):
+        files = os.listdir(folder_path)
+        total_files = len(files)
+        for index, filename in enumerate(files):
             file_path = os.path.join(folder_path, filename)
             if os.path.isfile(file_path):
                 mean_volume = self.get_volume_from_ffmpeg(file_path)
                 if mean_volume is not None:
                     results.append((filename, mean_volume))
+
+            # 프로그레스 다이얼로그 업데이트
+            progress_dialog.setValue(int((index + 1) / total_files * 100))
+            QCoreApplication.processEvents()  # UI 강제 갱신
+
+            # 사용자가 취소 버튼을 누른 경우 작업을 중단
+            if progress_dialog.wasCanceled():
+                break
 
         if results:
             self.table_widget.setRowCount(len(results))
@@ -146,7 +156,24 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
     def analyze_folder(self):
         if self.selected_folder:
-            self.process_folder(self.selected_folder)
+            # 로딩 화면 (QProgressDialog) 생성
+            progress_dialog = QProgressDialog("평균 음량을 분석 중입니다...", "취소", 0, 100, self)
+            progress_dialog.setWindowTitle("분석 중")
+            progress_dialog.setWindowModality(QtCore.Qt.WindowModal)
+
+            # 창 크기 조정
+            progress_dialog.resize(400, 100)  # 가로 400, 세로 100으로 크기 설정
+
+            # 물음표 버튼 제거
+            progress_dialog.setWindowFlags(progress_dialog.windowFlags() & ~Qt.WindowContextHelpButtonHint)
+
+            progress_dialog.show()
+
+            # 분석 프로세스 실행
+            self.process_folder(self.selected_folder, progress_dialog)
+
+            # 분석 완료 후 프로그레스 바를 100%로 설정
+            progress_dialog.setValue(100)
         else:
             QMessageBox.warning(self, "경고", "분석할 폴더를 먼저 선택하세요.")
 
