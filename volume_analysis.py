@@ -107,15 +107,24 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
     def process_folder(self, folder_path, progress_dialog):
         self.table_widget.setRowCount(0)  # Clear existing rows
-        results = []
         files = os.listdir(folder_path)
         total_files = len(files)
+
+        # Initialize a dictionary to hold results and errors
+        results = {}
+        errors = {}
+
         for index, filename in enumerate(files):
             file_path = os.path.join(folder_path, filename)
             if os.path.isfile(file_path):
-                mean_volume = self.get_volume_from_ffmpeg(file_path)
-                if mean_volume is not None:
-                    results.append((filename, mean_volume))
+                try:
+                    mean_volume = self.get_volume_from_ffmpeg(file_path)
+                    if mean_volume is not None:
+                        results[filename] = f"{mean_volume:.2f} dB"
+                    else:
+                        errors[filename] = 'Error occurred'
+                except Exception as e:
+                    errors[filename] = 'Error occurred'
 
             # 프로그레스 다이얼로그 업데이트
             progress_dialog.setValue(int((index + 1) / total_files * 100))
@@ -125,12 +134,20 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
             if progress_dialog.wasCanceled():
                 break
 
-        if results:
-            self.table_widget.setRowCount(len(results))
-            for row, (filename, mean_volume) in enumerate(results):
+        # 결과와 에러를 원래 파일 순서대로 테이블에 추가
+        combined_results = []
+        for filename in files:
+            if filename in results:
+                combined_results.append((filename, results[filename], ''))
+            elif filename in errors:
+                combined_results.append((filename, '-', errors[filename]))
+
+        if combined_results:
+            self.table_widget.setRowCount(len(combined_results))
+            for row, (filename, mean_volume, comment) in enumerate(combined_results):
                 self.table_widget.setItem(row, 0, QTableWidgetItem(filename))
-                self.table_widget.setItem(row, 1, QTableWidgetItem(f"{mean_volume:.2f} dB"))
-                self.table_widget.setItem(row, 2, QTableWidgetItem(''))  # Empty cell for comments
+                self.table_widget.setItem(row, 1, QTableWidgetItem(mean_volume))
+                self.table_widget.setItem(row, 2, QTableWidgetItem(comment))
         else:
             self.table_widget.setRowCount(1)
             self.table_widget.setItem(0, 0, QTableWidgetItem("No audio files found or unable to calculate volume."))
