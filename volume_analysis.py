@@ -4,7 +4,7 @@ import re
 import csv
 from PyQt5 import QtWidgets, QtCore
 from PyQt5.QtWidgets import QFileDialog, QMessageBox, QLineEdit, QListWidget, QTableWidget, QTableWidgetItem, \
-    QVBoxLayout, QHBoxLayout, QPushButton, QProgressDialog
+    QVBoxLayout, QHBoxLayout, QProgressDialog
 from PyQt5.QtCore import QCoreApplication, Qt
 
 class VolumeAnalysisApp(QtWidgets.QWidget):
@@ -114,9 +114,11 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
         results = {}
         errors = {}
 
+        allowed_extensions = ('.mp3', '.mp4')  # 허용된 파일 확장자 목록
+
         for index, filename in enumerate(files):
             file_path = os.path.join(folder_path, filename)
-            if os.path.isfile(file_path):
+            if os.path.isfile(file_path) and file_path.lower().endswith(allowed_extensions):
                 try:
                     mean_volume = self.get_volume_from_ffmpeg(file_path)
                     if mean_volume is not None:
@@ -166,9 +168,12 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
     def load_files_in_folder(self, folder_path):
         self.file_list.clear()  # 기존 파일 목록을 초기화
+        # mp3, mp4만 리스트에 추가
+        allowed_extensions = ('.mp3', '.mp4')
+
         for filename in os.listdir(folder_path):
             file_path = os.path.join(folder_path, filename)
-            if os.path.isfile(file_path):
+            if os.path.isfile(file_path) and file_path.lower().endswith(allowed_extensions):
                 self.file_list.addItem(filename)
 
     def analyze_folder(self):
