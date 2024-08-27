@@ -14,7 +14,7 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
     def init_ui(self):
         # UI 구성 요소
-        self.setWindowTitle('Volume Analysis')
+        self.setWindowTitle('MP3 & MP4 Volume Analysis')
         self.setGeometry(300, 300, 1000, 600)  # 전체 창 크기 조정
 
         # Layouts
@@ -24,7 +24,7 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
         button_layout = QHBoxLayout()  # 버튼 레이아웃
 
         # 폴더 선택 라벨
-        self.label = QtWidgets.QLabel('오디오 파일이 있는 폴더를 선택하세요:', self)
+        self.label = QtWidgets.QLabel('리소스 파일이 있는 폴더를 선택하세요:', self)
         top_layout.addWidget(self.label)
 
         # 폴더 경로 표시 텍스트 필드
