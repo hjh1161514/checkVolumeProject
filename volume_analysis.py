@@ -168,13 +168,14 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
     def load_files_in_folder(self, folder_path):
         self.file_list.clear()  # 기존 파일 목록을 초기화
-        # mp3, mp4만 리스트에 추가
-        allowed_extensions = ('.mp3', '.mp4')
+        allowed_extensions = {'.mp3', '.mp4'}  # 허용된 파일 확장자 목록
+        files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))
+                 and os.path.splitext(f)[1].lower() in allowed_extensions]  # mp3, mp4 파일만 포함
 
-        for filename in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, filename)
-            if os.path.isfile(file_path) and file_path.lower().endswith(allowed_extensions):
-                self.file_list.addItem(filename)
+        # 파일 목록을 번호와 함께 표시
+        for index, filename in enumerate(files, start=1):
+            item_text = f"{index}. {filename}"  # 번호와 파일 이름을 포함한 텍스트
+            self.file_list.addItem(item_text)
 
     def analyze_folder(self):
         if self.selected_folder:
