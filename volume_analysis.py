@@ -168,6 +168,7 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
     def load_files_in_folder(self, folder_path):
         self.file_list.clear()  # 기존 파일 목록을 초기화
+        self.table_widget.hide() # 분석 테이블 미노출
         allowed_extensions = {'.mp3', '.mp4'}  # 허용된 파일 확장자 목록
         files = [f for f in os.listdir(folder_path) if os.path.isfile(os.path.join(folder_path, f))
                  and os.path.splitext(f)[1].lower() in allowed_extensions]  # mp3, mp4 파일만 포함
@@ -197,6 +198,9 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
             # 분석 완료 후 프로그레스 바를 100%로 설정
             progress_dialog.setValue(100)
+
+            # 분석 테이블 노출
+            self.table_widget.show()
         else:
             QMessageBox.warning(self, "경고", "분석할 폴더를 먼저 선택하세요.")
 
