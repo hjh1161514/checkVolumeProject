@@ -56,7 +56,7 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
         # Set column widths
         self.table_widget.setColumnWidth(0, 300)  # Filename column width
         self.table_widget.setColumnWidth(1, 150)  # Mean Volume column width
-        self.table_widget.setColumnWidth(2, 250)  # Comment column width
+        self.table_widget.setColumnWidth(2, 350)  # Comment column width
 
         # 하단 레이아웃에 파일 리스트와 테이블 추가
         bottom_layout.addWidget(self.file_list)
@@ -122,11 +122,16 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
                 try:
                     mean_volume = self.get_volume_from_ffmpeg(file_path)
                     if mean_volume is not None:
-                        results[filename] = f"{mean_volume:.2f} dB"
+                        # 음량 범위 검토
+                        if -19.00 <= mean_volume <= -15.00:
+                            comment = ''
+                        else:
+                            comment = '가이드 범위(-15.00 dB ~ -19.00 dB)에 맞지 않습니다.'
+                        results[filename] = (f"{mean_volume:.2f} dB", comment)
                     else:
-                        errors[filename] = 'Error occurred'
+                        errors[filename] = '에러가 발생했습니다.'
                 except Exception as e:
-                    errors[filename] = 'Error occurred'
+                    errors[filename] = f"{str(e)} 에러가 발생했습니다."
 
             # 프로그레스 다이얼로그 업데이트
             progress_dialog.setValue(int((index + 1) / total_files * 100))
@@ -140,7 +145,8 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
         combined_results = []
         for filename in files:
             if filename in results:
-                combined_results.append((filename, results[filename], ''))
+                volume, comment = results[filename]
+                combined_results.append((filename, volume, comment))
             elif filename in errors:
                 combined_results.append((filename, '-', errors[filename]))
 
@@ -214,7 +220,7 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
         if file_name:
             try:
-                with open(file_name, mode='w', newline='', encoding='utf-8') as file:
+                with open(file_name, mode='w', newline='', encoding='utf-8-sig') as file:
                     writer = csv.writer(file)
                     writer.writerow(['Filename', 'Mean Volume (dB)', 'Comment'])  # 헤더 작성
                     for row in range(self.table_widget.rowCount()):
