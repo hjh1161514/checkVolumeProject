@@ -1,13 +1,3 @@
-import os
-import subprocess
-import re
-import csv
-from PyQt5 import QtWidgets, QtCore
-from PyQt5.QtWidgets import QFileDialog, QMessageBox, QLineEdit, QListWidget, QTableWidget, QTableWidgetItem, \
-    QVBoxLayout, QHBoxLayout, QProgressDialog
-from PyQt5.QtCore import QCoreApplication, Qt
-
-
 class VolumeAnalysisApp(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -79,6 +69,8 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
         self.setLayout(main_layout)
 
         self.selected_folder = None
+
+        self.table_widget.hide()
 
     def get_volume_from_ffmpeg(self, file_path):
         try:
@@ -187,6 +179,7 @@ class VolumeAnalysisApp(QtWidgets.QWidget):
 
     def analyze_folder(self):
         if self.selected_folder:
+
             # 로딩 화면 (QProgressDialog) 생성
             progress_dialog = QProgressDialog("평균 음량을 분석 중입니다...", "취소", 0, 100, self)
             progress_dialog.setWindowTitle("분석 중")
